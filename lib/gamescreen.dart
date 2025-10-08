@@ -62,3 +62,62 @@ class _GameScreenState extends State<GameScreen>
       await _sfxPlayer.play(AssetSource('sounds/win.mp3'));
     }
   }
+
+  Widget _buildSpookyItem(Map<String, dynamic> item, int index) {
+    final double randomX = _random.nextDouble() * 250;
+    final double randomY = _random.nextDouble() * 400;
+    final double randomScale = 0.5 + _random.nextDouble() * 0.8;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        double dx = randomX + sin(_controller.value * 2 * pi) * 20;
+        double dy = randomY + cos(_controller.value * 2 * pi) * 20;
+
+        return Positioned(
+          left: dx,
+          top: dy,
+          child: Transform.scale(
+            scale: randomScale,
+            child: IconButton(
+              onPressed: () => _onItemTap(item['isTrap']),
+              iconSize: 80,
+              icon: Image.asset(item['image']),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text("Spooky Hunt"),
+        backgroundColor: Colors.deepPurple.shade900,
+      ),
+      body: Stack(
+        children: [
+          ...List.generate(spookyItems.length,
+              (index) => _buildSpookyItem(spookyItems[index], index)),
+          if (_gameWon)
+            Center(
+              child: Container(
+                color: Colors.black54,
+                padding: const EdgeInsets.all(20),
+                child: const Text(
+                  "🎉 You Found It! 🎃",
+                  style: TextStyle(
+                      fontSize: 28,
+                      color: Colors.orangeAccent,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
