@@ -25,12 +25,12 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                  transitionDuration: const Duration(milliseconds: 1500),
-                  pageBuilder: (_, animation, __) => const HauntedForestPage(),
-                  transitionsBuilder: (_, animation, __, child) =>
-                  FadeTransition(opacity: animation, child: child),
-               ),
-    );
+                    transitionDuration: const Duration(milliseconds: 1500),
+                    pageBuilder: (_, animation, __) => const GameScreen(),
+                    transitionsBuilder: (_, animation, __, child) =>
+                        FadeTransition(opacity: animation, child: child),
+                  ),
+                );
               },
               child: const Text(
                 "Enter the Haunted Forest... if you dare!",

@@ -17,9 +17,8 @@ class _GameScreenState extends State<GameScreen>
   bool _gameWon = false;
   final Random _random = Random();
 
-  // Example spooky items
   final List<Map<String, dynamic>> spookyItems = [
-    {'image': 'assets/images/ghost.png', 'isTrap': true},
+    {'image': 'assets/images/ghost.jpeg', 'isTrap': true},
     {'image': 'assets/images/pumpkin.png', 'isTrap': false}, // WIN ITEM
     {'image': 'assets/images/bat.png', 'isTrap': true},
     {'image': 'assets/images/candy.png', 'isTrap': true},
@@ -33,9 +32,16 @@ class _GameScreenState extends State<GameScreen>
         AnimationController(vsync: this, duration: const Duration(seconds: 4))
           ..repeat(reverse: true);
 
-    // Play looping background music
     _bgPlayer.setReleaseMode(ReleaseMode.loop);
-    _bgPlayer.play(AssetSource('sounds/background.mp3'));
+    _bgPlayer.setVolume(1.0);
+    _sfxPlayer.setVolume(1.0);
+
+    // Start background music
+    _playBackgroundMusic();
+  }
+
+  Future<void> _playBackgroundMusic() async {
+    await _bgPlayer.play(AssetSource('sounds/BgMusic.mp3'));
   }
 
   @override
@@ -51,6 +57,7 @@ class _GameScreenState extends State<GameScreen>
 
     if (isTrap) {
       await _sfxPlayer.play(AssetSource('sounds/jumpscare.mp3'));
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('BOO! You clicked a trap! 👻'),
@@ -59,8 +66,14 @@ class _GameScreenState extends State<GameScreen>
       );
     } else {
       setState(() => _gameWon = true);
-      await _sfxPlayer.play(AssetSource('sounds/win.mp3'));
+      await _sfxPlayer.play(AssetSource('sounds/success.mp3'));
     }
+  }
+
+  void _resetGame() {
+    setState(() {
+      _gameWon = false;
+    });
   }
 
   Widget _buildSpookyItem(Map<String, dynamic> item, int index) {
@@ -81,8 +94,14 @@ class _GameScreenState extends State<GameScreen>
             scale: randomScale,
             child: IconButton(
               onPressed: () => _onItemTap(item['isTrap']),
-              iconSize: 80,
-              icon: Image.asset(item['image']),
+              icon: SizedBox(
+                width: 80,
+                height: 80,
+                child: Image.asset(
+                  item['image'],
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
           ),
         );
@@ -93,26 +112,56 @@ class _GameScreenState extends State<GameScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text("Spooky Hunt"),
         backgroundColor: Colors.deepPurple.shade900,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Stack(
         children: [
-          ...List.generate(spookyItems.length,
-              (index) => _buildSpookyItem(spookyItems[index], index)),
+          // Background image
+          SizedBox.expand(
+            child: Image.asset(
+              'assets/images/background.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Floating spooky items
+          ...List.generate(
+              spookyItems.length, (index) => _buildSpookyItem(spookyItems[index], index)),
+
+          // Win overlay
           if (_gameWon)
             Center(
               child: Container(
                 color: Colors.black54,
                 padding: const EdgeInsets.all(20),
-                child: const Text(
-                  "🎉 You Found It! 🎃",
-                  style: TextStyle(
-                      fontSize: 28,
-                      color: Colors.orangeAccent,
-                      fontWeight: FontWeight.bold),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "🎉 You Found It! 🎃",
+                      style: TextStyle(
+                          fontSize: 28,
+                          color: Colors.orangeAccent,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _resetGame,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                      ),
+                      child: const Text(
+                        "Play Again",
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
